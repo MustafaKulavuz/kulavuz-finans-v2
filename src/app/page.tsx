@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import {
   Trash2,
   TrendingDown,
