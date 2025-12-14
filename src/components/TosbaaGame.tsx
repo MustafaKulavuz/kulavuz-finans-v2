@@ -65,7 +65,7 @@ export default function TosbaaGame({
 
         <p className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
           {isFull
-            ? "Tosbaa tamamen doydu, biraz harcama yap ki acıksın!"
+            ? "Tosbaa tamamen doydu, biraz harcama yapma ki acıkmasın!"
             : initialHealth <= 20
             ? "DİKKAT: Tosbaa çok acıktı! 🤒"
             : "Enerji Veritabanına Kaydediliyor 💾"}
