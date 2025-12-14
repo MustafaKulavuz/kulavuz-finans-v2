@@ -25,8 +25,8 @@ export default function AykutNotificationButton({ balance, expense }: Props) {
 
     // 1. Ses Kanalı Oluştur (Android 8+ için şart)
     await LocalNotifications.createChannel({
-      id: "aykut_channel",
-      name: "Aykut Uyarıları",
+      id: "aykut_sesli_yeni",
+      name: "Aykut Sesli Uyarılar",
       importance: 5,
       sound: "aykut_ses.mp3", // raw klasöründeki dosya adı
       vibration: true,
@@ -94,7 +94,7 @@ export default function AykutNotificationButton({ balance, expense }: Props) {
       id: 100 + index,
       schedule: { at: new Date(Date.now() + 1000 * 60 * 60 * notif.saatSonra) },
       sound: "aykut_ses.mp3", // Ses dosyası
-      channelId: "aykut_channel", // Kanal bağlantısı
+      channelId: "aykut_sesli_yeni", // Kanal bağlantısı
     }));
 
     await LocalNotifications.schedule({ notifications: scheduleList });
