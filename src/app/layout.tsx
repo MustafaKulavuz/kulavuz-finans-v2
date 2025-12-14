@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kılavuz Finans",
+  title: "Kulavuz Finans",
   description: "Finansal özgürlük takipçisi",
 };
 
