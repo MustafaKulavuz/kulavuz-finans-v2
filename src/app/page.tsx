@@ -42,12 +42,10 @@ export default async function Home() {
 
   await connectDB();
 
-  // Verileri Çek
   const data = await Transaction.find({ userEmail: session.user.email }).sort({
     date: -1,
   });
 
-  // Hesaplamalar
   const totalIncome = data
     .filter((t) => t.type === "INCOME")
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -56,7 +54,6 @@ export default async function Home() {
     .reduce((acc, curr) => acc + curr.amount, 0);
   const balance = totalIncome - totalExpense;
 
-  // Kategori Analizi
   const categoryData = data
     .filter((t) => t.type === "EXPENSE")
     .reduce((acc: any, curr) => {
@@ -70,7 +67,7 @@ export default async function Home() {
         {/* HEADER */}
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
+            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl text-slate-900 dark:text-white">
               💲
             </div>
             <div>
@@ -86,7 +83,6 @@ export default async function Home() {
 
           <div className="flex flex-col-reverse md:flex-row items-stretch md:items-center gap-4">
             <ThemeToggle />
-
             <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
               <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
                 <UserCircle size={24} />
@@ -107,12 +103,12 @@ export default async function Home() {
               </Link>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] transition-colors">
-              <p className="mb-1 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] transition-colors text-center">
+              <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 NET BAKİYE
               </p>
               <h2
-                className={`text-center text-3xl font-black ${
+                className={`text-3xl font-black ${
                   balance >= 0
                     ? "text-emerald-600 dark:text-emerald-400"
                     : "text-rose-600 dark:text-rose-400"
@@ -126,23 +122,38 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            {/* TOSBAA VE BESLEME SİSTEMİ */}
+            {/* TOSBAA BESLEME SİSTEMİ (ÇALIŞAN BUTONLU) */}
             <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
               <TosbaaPet balance={balance} />
 
               <div className="mt-6 flex flex-col gap-3">
-                <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 p-4 font-black text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95">
-                  <Utensils size={20} />
-                  <span>TOSBAA'YI BESLE (50 ₺)</span>
-                </button>
+                <form
+                  action={async () => {
+                    "use server";
+                    const formData = new FormData();
+                    formData.append("category", "Yiyecek");
+                    formData.append("description", "Tosbaa Besleme (Pizza 🍕)");
+                    formData.append("amount", "50");
+                    formData.append("type", "EXPENSE");
+                    await addTransaction(formData); // Sunucu aksiyonunu çalıştır
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 p-4 font-black text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
+                  >
+                    <Utensils size={20} />
+                    <span>TOSBAA'YI BESLE (50 ₺)</span>
+                  </button>
+                </form>
                 <p className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
-                  Harcama yaptıkça enerjisi düşer, besleyince mutlu olur!
+                  Butona basınca harcamalara 50 ₺ eklenir ve Tosbaa mutlu olur!
                 </p>
               </div>
             </section>
 
-            {/* EKLEME FORMU */}
+            {/* İŞLEM EKLEME FORMU */}
             <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black p-6 md:p-8 shadow-2xl transition-colors">
               <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
               <h3 className="relative mb-6 flex items-center gap-2 text-lg font-bold text-white">
@@ -193,7 +204,7 @@ export default async function Home() {
               </form>
             </section>
 
-            {/* İŞLEM LİSTESİ */}
+            {/* LİSTE */}
             <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-colors">
               <div className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-6 text-xs font-black uppercase tracking-widest text-slate-400">
                 Son Hareketler
@@ -203,10 +214,6 @@ export default async function Home() {
                   const deleteWithId = deleteTransaction.bind(
                     null,
                     t._id.toString()
-                  );
-                  const formattedDate = new Date(t.date).toLocaleDateString(
-                    "tr-TR",
-                    { day: "numeric", month: "long" }
                   );
                   return (
                     <div
@@ -231,14 +238,9 @@ export default async function Home() {
                           <p className="font-bold text-slate-900 dark:text-slate-100">
                             {t.description}
                           </p>
-                          <div className="flex items-center gap-2">
-                            <span className="inline-block rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                              {t.category}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {formattedDate}
-                            </span>
-                          </div>
+                          <span className="inline-block rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            {t.category}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -270,16 +272,11 @@ export default async function Home() {
                     </div>
                   );
                 })}
-                {data.length === 0 && (
-                  <div className="p-12 text-center text-slate-400 font-medium italic">
-                    Hiç kaydın yok. Yeni bir tane ekle!
-                  </div>
-                )}
               </div>
             </section>
           </div>
 
-          {/* SAĞ TARAF (ANAliz VE AYKUT MODU) */}
+          {/* SAĞ TARAF */}
           <div className="space-y-6">
             <section className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
               <h3 className="font-black text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2 uppercase text-[10px] tracking-widest">
@@ -291,9 +288,7 @@ export default async function Home() {
                   <div key={cat} className="group">
                     <div className="flex justify-between text-sm mb-2 font-bold text-slate-600 dark:text-slate-400">
                       <span>{cat}</span>
-                      <span className="text-slate-900 dark:text-slate-100">
-                        {amt.toLocaleString()} ₺
-                      </span>
+                      <span>{amt.toLocaleString()} ₺</span>
                     </div>
                     <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden">
                       <div
@@ -311,32 +306,25 @@ export default async function Home() {
               </div>
             </section>
 
-            <div className="flex h-40 flex-col justify-between rounded-[2.5rem] bg-emerald-500 p-8 text-white shadow-xl shadow-emerald-200 dark:shadow-none">
-              <div className="flex items-center gap-2 opacity-80">
-                <TrendingUp size={20} />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  Toplam Gelir
-                </span>
-              </div>
-              <p className="text-4xl font-black tracking-tighter">
+            <div className="flex h-32 flex-col justify-center rounded-[2.5rem] bg-emerald-500 p-8 text-white shadow-xl shadow-emerald-200 dark:shadow-none">
+              <span className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">
+                Toplam Gelir
+              </span>
+              <p className="text-3xl font-black">
                 {totalIncome.toLocaleString()} ₺
               </p>
             </div>
 
-            <div className="flex h-40 flex-col justify-between rounded-[2.5rem] bg-rose-500 p-8 text-white shadow-xl shadow-rose-200 dark:shadow-none">
-              <div className="flex items-center gap-2 opacity-80">
-                <TrendingDown size={20} />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  Toplam Gider
-                </span>
-              </div>
-              <p className="text-4xl font-black tracking-tighter">
+            <div className="flex h-32 flex-col justify-center rounded-[2.5rem] bg-rose-500 p-8 text-white shadow-xl shadow-rose-200 dark:shadow-none">
+              <span className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">
+                Toplam Gider
+              </span>
+              <p className="text-3xl font-black">
                 {totalExpense.toLocaleString()} ₺
               </p>
             </div>
 
             <AiAdviceButton income={totalIncome} expense={totalExpense} />
-
             <div className="mt-6">
               <AykutNotificationButton
                 balance={balance}
