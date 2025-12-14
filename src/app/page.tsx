@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import AiAdviceButton from "@/components/AiAdviceButton";
 import { authOptions } from "@/lib/auth"; // auth.ts konumuna dikkat
 import {
   Trash2,
@@ -306,10 +307,12 @@ export default async function Home() {
                   Toplam Gider
                 </span>
               </div>
+
               <p className="text-4xl font-black tracking-tighter">
                 {totalExpense.toLocaleString()} ₺
               </p>
             </div>
+            <AiAdviceButton income={totalIncome} expense={totalExpense} />
           </div>
         </div>
       </div>

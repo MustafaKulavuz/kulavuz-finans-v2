@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AiAdviceButton from "@/components/AiAdviceButton";
 
 export default function Register() {
   const router = useRouter();
