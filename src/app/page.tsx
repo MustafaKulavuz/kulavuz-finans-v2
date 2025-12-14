@@ -2,10 +2,10 @@ import { addTransaction, deleteTransaction } from "@/actions/transaction";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import Link from "next/link";
-import TosbaaPet from "@/components/TosbaaPet";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
 import AykutNotificationButton from "../components/AykutNotificationButton";
+import TosbaaGame from "@/components/TosbaaGame"; // Doğru import yeri
 import { authOptions } from "@/lib/auth";
 import {
   Trash2,
@@ -17,7 +17,6 @@ import {
   UserCircle,
   LogOut,
   Pencil,
-  Utensils,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -41,7 +40,6 @@ export default async function Home() {
   }
 
   await connectDB();
-
   const data = await Transaction.find({ userEmail: session.user.email }).sort({
     date: -1,
   });
@@ -65,13 +63,13 @@ export default async function Home() {
     <main className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
       <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
         {/* HEADER */}
-        <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors">
+        <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors text-slate-900 dark:text-white">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl text-slate-900 dark:text-white">
+            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
               💲
             </div>
             <div>
-              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight">
                 Kulavuz Finans{" "}
                 <Sparkles className="text-indigo-500" size={24} />
               </h1>
@@ -80,9 +78,9 @@ export default async function Home() {
               </p>
             </div>
           </div>
-
           <div className="flex flex-col-reverse md:flex-row items-stretch md:items-center gap-4">
             <ThemeToggle />
+
             <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
               <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
                 <UserCircle size={24} />
@@ -91,7 +89,7 @@ export default async function Home() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   KULLANICI
                 </span>
-                <span className="font-bold text-slate-900 dark:text-white leading-tight">
+                <span className="font-bold leading-tight">
                   {session.user.name}
                 </span>
               </div>
@@ -102,7 +100,6 @@ export default async function Home() {
                 <LogOut size={20} />
               </Link>
             </div>
-
             <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] transition-colors text-center">
               <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 NET BAKİYE
@@ -122,38 +119,10 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            {/* TOSBAA BESLEME SİSTEMİ (ÇALIŞAN BUTONLU) */}
-            <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
-              <TosbaaPet balance={balance} />
+            {/* TOSBAA OYUN ALANI */}
+            <TosbaaGame initialBalance={balance} />
 
-              <div className="mt-6 flex flex-col gap-3">
-                <form
-                  action={async () => {
-                    "use server";
-                    const formData = new FormData();
-                    formData.append("category", "Yiyecek");
-                    formData.append("description", "Tosbaa Besleme (Pizza 🍕)");
-                    formData.append("amount", "50");
-                    formData.append("type", "EXPENSE");
-                    await addTransaction(formData); // Sunucu aksiyonunu çalıştır
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 p-4 font-black text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
-                  >
-                    <Utensils size={20} />
-                    <span>TOSBAA'YI BESLE (50 ₺)</span>
-                  </button>
-                </form>
-                <p className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
-                  Butona basınca harcamalara 50 ₺ eklenir ve Tosbaa mutlu olur!
-                </p>
-              </div>
-            </section>
-
-            {/* İŞLEM EKLEME FORMU */}
+            {/* EKLEME FORMU */}
             <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black p-6 md:p-8 shadow-2xl transition-colors">
               <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
               <h3 className="relative mb-6 flex items-center gap-2 text-lg font-bold text-white">
@@ -205,8 +174,8 @@ export default async function Home() {
             </section>
 
             {/* LİSTE */}
-            <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-colors">
-              <div className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-6 text-xs font-black uppercase tracking-widest text-slate-400">
+            <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-colors text-slate-900 dark:text-slate-100">
+              <div className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-6 text-xs font-black uppercase tracking-widest text-slate-400 text-center">
                 Son Hareketler
               </div>
               <div className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -235,9 +204,7 @@ export default async function Home() {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 dark:text-slate-100">
-                            {t.description}
-                          </p>
+                          <p className="font-bold">{t.description}</p>
                           <span className="inline-block rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                             {t.category}
                           </span>
@@ -248,18 +215,20 @@ export default async function Home() {
                           className={`text-xl font-black ${
                             t.type === "INCOME"
                               ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-slate-900 dark:text-slate-100"
+                              : ""
                           }`}
                         >
                           {t.type === "INCOME" ? "+" : "-"}
                           {t.amount.toLocaleString()} ₺
                         </span>
+
                         <Link
                           href={`/edit/${t._id.toString()}`}
                           className="rounded-xl p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
                         >
                           <Pencil size={18} />
                         </Link>
+
                         <form action={deleteWithId}>
                           <button
                             type="submit"
@@ -276,10 +245,9 @@ export default async function Home() {
             </section>
           </div>
 
-          {/* SAĞ TARAF */}
           <div className="space-y-6">
-            <section className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-              <h3 className="font-black text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2 uppercase text-[10px] tracking-widest">
+            <section className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 transition-colors text-slate-900 dark:text-slate-100">
+              <h3 className="font-black mb-6 flex items-center gap-2 uppercase text-[10px] tracking-widest">
                 <PieIcon size={16} className="text-indigo-500" /> Harcama
                 Analizi
               </h3>
@@ -325,6 +293,7 @@ export default async function Home() {
             </div>
 
             <AiAdviceButton income={totalIncome} expense={totalExpense} />
+
             <div className="mt-6">
               <AykutNotificationButton
                 balance={balance}
