@@ -17,13 +17,23 @@ export default function AykutNotificationButton({ balance, expense }: Props) {
     if (checkStatus === "aktif") setOtomatikMod(true);
   }, []);
 
-  // --- AKILLI BİLDİRİM MOTORU ---
+  // --- AKILLI VE SESLİ BİLDİRİM MOTORU ---
   const akilliPlanlamaYap = async () => {
     const { LocalNotifications } = await import(
       "@capacitor/local-notifications"
     );
 
-    // 1. Önce eski planları temizle
+    // 1. Ses Kanalı Oluştur (Android 8+ için şart)
+    await LocalNotifications.createChannel({
+      id: "aykut_channel",
+      name: "Aykut Uyarıları",
+      importance: 5,
+      sound: "aykut_ses.mp3", // raw klasöründeki dosya adı
+      vibration: true,
+      visibility: 1,
+    });
+
+    // 2. Eski planları temizle
     const pending = await LocalNotifications.getPending();
     if (pending.notifications.length > 0) {
       await LocalNotifications.cancel(pending);
@@ -32,83 +42,63 @@ export default function AykutNotificationButton({ balance, expense }: Props) {
     let bildirimler = [];
     let modAdi = "";
 
-    // 2. Duruma Göre Senaryo Seç
+    // 3. Duruma Göre Senaryo Belirle
     if (balance < 0) {
-      // --- KIRMIZI ALARM MODU (Çok Sıkı) ---
       modAdi = "İFLAS MODU 🚨";
       bildirimler = [
         {
           title: "BATTIK BATTIK!",
           body: `Şu an ${balance} TL içerdesin. Kendine gel!`,
-          saatSonra: 2,
-        },
+          saatSonra: 0.01,
+        }, // Test için hemen (36 saniye sonra)
         {
           title: "Hala harcıyor musun?",
           body: "Borç yiğidin kamçısıdır dedik de abarttın.",
-          saatSonra: 5,
-        },
-        {
-          title: "Gece Raporu",
-          body: "Bugün hiç harcama yapma, rica ediyorum.",
-          saatSonra: 10,
-        },
-        {
-          title: "Günaydın Borçlu",
-          body: "Uyan ve borçlarını öde.",
-          saatSonra: 24,
+          saatSonra: 4,
         },
       ];
     } else if (balance < 2000) {
-      // --- DİKKAT MODU (Orta) ---
       modAdi = "TASARRUF MODU ⚠️";
       bildirimler = [
         {
           title: "Limitler Zorlanıyor",
-          body: `Cebinde sadece ${balance} TL kaldı. Dikkat et.`,
-          saatSonra: 4,
+          body: `Cebinde sadece ${balance} TL kaldı.`,
+          saatSonra: 0.01,
         },
         {
           title: "Gereksiz Harcama Yapma",
           body: "O kahveyi evde içsen ölmezsin.",
-          saatSonra: 8,
-        },
-        {
-          title: "Durum Kontrolü",
-          body: "Hala ay sonunu getirebiliriz, dayan!",
-          saatSonra: 24,
+          saatSonra: 6,
         },
       ];
     } else {
-      // --- RAHAT MOD (Düşük) ---
       modAdi = "KEYİF MODU 😎";
       bildirimler = [
         {
           title: "Durumlar İyi",
           body: `Kasa sağlam (${balance} TL). Ama şımarma.`,
-          saatSonra: 6,
+          saatSonra: 0.01,
         },
         {
           title: "Yatırım Tavsiyesi",
-          body: "Paran varken biriktir, harcarken değil.",
-          saatSonra: 24,
+          body: "Paran varken biriktir.",
+          saatSonra: 12,
         },
       ];
     }
 
-    // 3. Bildirimleri Zamanla (Schedule)
-    // 3. Bildirimleri Zamanla (Schedule)
+    // 4. Bildirimleri Sesli Olarak Planla
     const scheduleList = bildirimler.map((notif, index) => ({
       title: notif.title,
       body: notif.body,
       id: 100 + index,
       schedule: { at: new Date(Date.now() + 1000 * 60 * 60 * notif.saatSonra) },
-      // sound satırını tamamen kaldırdık, artık kızmayacak!
+      sound: "aykut_ses.mp3", // Ses dosyası
+      channelId: "aykut_channel", // Kanal bağlantısı
     }));
 
     await LocalNotifications.schedule({ notifications: scheduleList });
-    alert(
-      `Aykut Modu Güncellendi: ${modAdi}\nDurumuna göre ${scheduleList.length} adet uyarı planlandı.`
-    );
+    alert(`Aykut Modu: ${modAdi}\nSesli uyarılar planlandı! 🐢🔊`);
   };
 
   const moduDegistir = async () => {
@@ -123,27 +113,18 @@ export default function AykutNotificationButton({ balance, expense }: Props) {
 
     if (permission.display === "granted") {
       if (!otomatikMod) {
-        // Açarken planla
         await akilliPlanlamaYap();
         localStorage.setItem("aykutModu", "aktif");
         setOtomatikMod(true);
       } else {
-        // Kapatırken her şeyi iptal et
         const pending = await LocalNotifications.getPending();
         await LocalNotifications.cancel(pending);
         localStorage.setItem("aykutModu", "pasif");
         setOtomatikMod(false);
-        alert("Mod kapatıldı, bildirimler iptal edildi.");
+        alert("Mod kapatıldı.");
       }
     }
   };
-
-  // Eğer mod zaten açıksa ve bakiye değiştiyse, sessizce planı güncelle (useEffect)
-  useEffect(() => {
-    if (isClient && otomatikMod) {
-      akilliPlanlamaYap().catch(console.error);
-    }
-  }, [balance, expense]); // Bakiye değişince tetiklenir
 
   if (!isClient) return null;
 
@@ -161,7 +142,9 @@ export default function AykutNotificationButton({ balance, expense }: Props) {
       ) : (
         <BellOff size={24} />
       )}
-      <span>{otomatikMod ? "AKILLI MOD: AÇIK" : "AKILLI MODU AÇ"}</span>
+      <span>
+        {otomatikMod ? "AKILLI MOD: AÇIK (SESLİ)" : "AKILLI SESLİ MODU AÇ"}
+      </span>
     </button>
   );
 }
