@@ -2,12 +2,13 @@
 
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
-import { User } from "@/models/User"; // Kullanıcı modelini ekledik
+import { User } from "@/models/User";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
+// --- İŞLEM EKLEME ---
 export async function addTransaction(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return;
@@ -34,17 +35,17 @@ export async function addTransaction(formData: FormData) {
       date: new Date(),
     });
 
-    // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür
-    // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür
+    // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür (En az 0 olacak şekilde)
     if (type === "EXPENSE") {
-      await User.findOneAndUpdate(
-        { email: session.user.email },
+      await User.findOneAndUpdate({ email: session.user.email }, [
         {
-          // Canı doğrudan 10 azaltıyoruz
-          $inc: { tosbaaHealth: -10 },
+          $set: {
+            tosbaaHealth: {
+              $max: [0, { $subtract: ["$tosbaaHealth", 10] }],
+            },
+          },
         },
-        { new: true }
-      );
+      ]);
     }
 
     revalidatePath("/");
@@ -53,7 +54,7 @@ export async function addTransaction(formData: FormData) {
   }
 }
 
-// TOSBAA BESLEME AKSİYONU (Yeni Eklendi)
+// --- TOSBAA BESLEME AKSİYONU (Para Düşmeli Versiyon) ---
 export async function feedTosbaaAction() {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return;
@@ -61,8 +62,17 @@ export async function feedTosbaaAction() {
   try {
     await connectDB();
 
-    // Kullanıcının canını %20 artır, ama 100'ü geçmesin
-    // MongoDB $min ve $max operatörleri ile bunu sınırlayabiliriz
+    // 1. Adım: Bakiyeden 50 TL düşmek için harcama kaydı oluştur
+    await Transaction.create({
+      description: "Tosbaa Besleme (Pizza 🍕)",
+      amount: 50,
+      category: "Yiyecek",
+      type: "EXPENSE",
+      userEmail: session.user.email,
+      date: new Date(),
+    });
+
+    // 2. Adım: Kullanıcının canını %20 artır, ama 100'ü geçmesin
     await User.findOneAndUpdate({ email: session.user.email }, [
       {
         $set: {
@@ -79,6 +89,7 @@ export async function feedTosbaaAction() {
   }
 }
 
+// --- İŞLEM SİLME ---
 export async function deleteTransaction(id: string) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return;
@@ -95,6 +106,7 @@ export async function deleteTransaction(id: string) {
   }
 }
 
+// --- ID İLE İŞLEM GETİR ---
 export async function getTransactionById(id: string) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return null;
@@ -114,6 +126,7 @@ export async function getTransactionById(id: string) {
   };
 }
 
+// --- İŞLEM GÜNCELLE ---
 export async function updateTransaction(id: string, formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return;
