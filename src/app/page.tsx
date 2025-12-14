@@ -64,11 +64,11 @@ export default async function Home() {
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
-              🐢
+              💲
             </div>
             <div>
               <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-                Kılavuz Finans{" "}
+                Kulavuz Finans{" "}
                 <Sparkles className="text-indigo-500" size={24} />
               </h1>
               <p className="font-medium text-slate-500 dark:text-slate-400 text-xs md:text-base">

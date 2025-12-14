@@ -8,24 +8,30 @@ export async function getFinancialAdvice(income: number, expense: number) {
     if (!apiKey) return "API Anahtarı bulunamadı.";
 
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // İŞTE ÇÖZÜM: Listende görünen en yeni modeli kullanıyoruz!
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
-      Sen 'Tosbaa' adında samimi bir finans asistanısın.
-      Gelir: ${income} TL, Gider: ${expense} TL.
+      Sen 'Tosbaa' adında, kurt bir borsacı ve acımasız bir finans danışmanısın.
       
-      Kullanıcıya durumuna göre 1-2 cümlelik, motive edici, hafif komik ve bol emojili bir tavsiye ver.
-      (Eğer gider gelirden fazlaysa nazikçe uyar, azsa tebrik et).
-      Cevabın sadece Türkçe olsun.
+      Kullanıcının Durumu:
+      - Gelir: ${income} TL
+      - Gider: ${expense} TL
+      
+      GÖREVİN VE KURALLARIN:
+      1. Asla yumuşak konuşma. Dobra ol.
+      2. Eğer Gider > Gelir ise: "Hisse senedini rüyanda görürsün", "Önce borcunu kapa batık!" gibi sert çıkış.
+      3. Eğer Gelir > Gider ise:
+         - Sadece "yatırım yap" deme. SPESİFİK OL.
+         - Şunlardan bahset: "BIST30'un sağlam kağıtlarına gir", "Yenilenebilir enerji hisselerini topla", "Temettü veren baba şirketlere ortak ol", "Teknoloji hisselerinde fırsat var".
+         - Borsacı ağzıyla konuş (Lot, Portföy, Ralli, Boğa piyasası gibi terimler kullan).
+      4. Cevabın 2-3 cümleyi geçmesin.
+      5. Emojiler: 📈, 🐂, 📉, 💸, 🏢
     `;
 
     const result = await model.generateContent(prompt);
-    const response = result.response;
-    return response.text();
+    return result.response.text();
   } catch (error: any) {
     console.error("AI HATASI:", error);
-    return "Şu an bağlantıda ufak bir sorun var ama bence harika gidiyorsun! 🐢";
+    return "Piyasa kapalı, verilere ulaşamıyorum! 📉";
   }
 }
