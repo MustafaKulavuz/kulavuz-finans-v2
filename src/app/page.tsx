@@ -2,10 +2,11 @@ import { addTransaction, deleteTransaction } from "@/actions/transaction";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import Link from "next/link";
+import TosbaaPet from "@/components/TosbaaPet";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
 import AykutNotificationButton from "../components/AykutNotificationButton";
-import { authOptions } from "@/lib/auth"; // auth.ts konumuna dikkat
+import { authOptions } from "@/lib/auth";
 import {
   Trash2,
   TrendingDown,
@@ -16,8 +17,9 @@ import {
   UserCircle,
   LogOut,
   Pencil,
+  Utensils,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle"; // Yeni butonumuz
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -39,10 +41,13 @@ export default async function Home() {
   }
 
   await connectDB();
+
+  // Verileri Çek
   const data = await Transaction.find({ userEmail: session.user.email }).sort({
     date: -1,
   });
 
+  // Hesaplamalar
   const totalIncome = data
     .filter((t) => t.type === "INCOME")
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -51,6 +56,7 @@ export default async function Home() {
     .reduce((acc, curr) => acc + curr.amount, 0);
   const balance = totalIncome - totalExpense;
 
+  // Kategori Analizi
   const categoryData = data
     .filter((t) => t.type === "EXPENSE")
     .reduce((acc: any, curr) => {
@@ -77,8 +83,8 @@ export default async function Home() {
               </p>
             </div>
           </div>
+
           <div className="flex flex-col-reverse md:flex-row items-stretch md:items-center gap-4">
-            {/* YENİ: Dark Mode Butonu */}
             <ThemeToggle />
 
             <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
@@ -100,6 +106,7 @@ export default async function Home() {
                 <LogOut size={20} />
               </Link>
             </div>
+
             <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] transition-colors">
               <p className="mb-1 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">
                 NET BAKİYE
@@ -119,6 +126,22 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
+            {/* TOSBAA VE BESLEME SİSTEMİ */}
+            <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
+              <TosbaaPet balance={balance} />
+
+              <div className="mt-6 flex flex-col gap-3">
+                <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 p-4 font-black text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95">
+                  <Utensils size={20} />
+                  <span>TOSBAA'YI BESLE (50 ₺)</span>
+                </button>
+                <p className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
+                  Harcama yaptıkça enerjisi düşer, besleyince mutlu olur!
+                </p>
+              </div>
+            </section>
+
             {/* EKLEME FORMU */}
             <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black p-6 md:p-8 shadow-2xl transition-colors">
               <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
@@ -170,7 +193,7 @@ export default async function Home() {
               </form>
             </section>
 
-            {/* GÜNCELLENMİŞ LİSTE */}
+            {/* İŞLEM LİSTESİ */}
             <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-colors">
               <div className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-6 text-xs font-black uppercase tracking-widest text-slate-400">
                 Son Hareketler
@@ -185,7 +208,6 @@ export default async function Home() {
                     "tr-TR",
                     { day: "numeric", month: "long" }
                   );
-
                   return (
                     <div
                       key={t._id.toString()}
@@ -230,14 +252,12 @@ export default async function Home() {
                           {t.type === "INCOME" ? "+" : "-"}
                           {t.amount.toLocaleString()} ₺
                         </span>
-
                         <Link
                           href={`/edit/${t._id.toString()}`}
                           className="rounded-xl p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all"
                         >
                           <Pencil size={18} />
                         </Link>
-
                         <form action={deleteWithId}>
                           <button
                             type="submit"
@@ -259,6 +279,7 @@ export default async function Home() {
             </section>
           </div>
 
+          {/* SAĞ TARAF (ANAliz VE AYKUT MODU) */}
           <div className="space-y-6">
             <section className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
               <h3 className="font-black text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2 uppercase text-[10px] tracking-widest">
@@ -289,7 +310,7 @@ export default async function Home() {
                 ))}
               </div>
             </section>
-            {/* Kartlar renklerini korusun, sadece hafif gölgelendirme */}
+
             <div className="flex h-40 flex-col justify-between rounded-[2.5rem] bg-emerald-500 p-8 text-white shadow-xl shadow-emerald-200 dark:shadow-none">
               <div className="flex items-center gap-2 opacity-80">
                 <TrendingUp size={20} />
@@ -301,6 +322,7 @@ export default async function Home() {
                 {totalIncome.toLocaleString()} ₺
               </p>
             </div>
+
             <div className="flex h-40 flex-col justify-between rounded-[2.5rem] bg-rose-500 p-8 text-white shadow-xl shadow-rose-200 dark:shadow-none">
               <div className="flex items-center gap-2 opacity-80">
                 <TrendingDown size={20} />
@@ -308,24 +330,19 @@ export default async function Home() {
                   Toplam Gider
                 </span>
               </div>
-
               <p className="text-4xl font-black tracking-tighter">
                 {totalExpense.toLocaleString()} ₺
               </p>
             </div>
-            {/* ... üstteki kodlar ... */}
 
             <AiAdviceButton income={totalIncome} expense={totalExpense} />
 
-            {/* 👇 BURAYA YAPIŞTIR 👇 */}
             <div className="mt-6">
               <AykutNotificationButton
                 balance={balance}
                 expense={totalExpense}
               />
             </div>
-
-            {/* ... alttaki kodlar ... */}
           </div>
         </div>
       </div>
