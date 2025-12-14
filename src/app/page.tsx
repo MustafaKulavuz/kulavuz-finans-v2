@@ -4,6 +4,7 @@ import { Transaction } from "@/models/Transaction";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
+import AykutNotificationButton from "../components/AykutNotificationButton";
 import { authOptions } from "@/lib/auth"; // auth.ts konumuna dikkat
 import {
   Trash2,
@@ -312,7 +313,16 @@ export default async function Home() {
                 {totalExpense.toLocaleString()} ₺
               </p>
             </div>
+            {/* ... üstteki kodlar ... */}
+
             <AiAdviceButton income={totalIncome} expense={totalExpense} />
+
+            {/* 👇 BURAYA YAPIŞTIR 👇 */}
+            <div className="mt-6">
+              <AykutNotificationButton />
+            </div>
+
+            {/* ... alttaki kodlar ... */}
           </div>
         </div>
       </div>
