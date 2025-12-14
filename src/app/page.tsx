@@ -319,7 +319,10 @@ export default async function Home() {
 
             {/* 👇 BURAYA YAPIŞTIR 👇 */}
             <div className="mt-6">
-              <AykutNotificationButton />
+              <AykutNotificationButton
+                balance={balance}
+                expense={totalExpense}
+              />
             </div>
 
             {/* ... alttaki kodlar ... */}
