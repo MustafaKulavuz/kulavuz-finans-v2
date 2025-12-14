@@ -1,7 +1,9 @@
 import { addTransaction, deleteTransaction } from "@/actions/transaction";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
-import { User } from "@/models/User"; // Kullanıcı verisi için ekledik
+import { User } from "@/models/User";
+import { checkAchievements } from "@/actions/achievements";
+import AchievementEffect from "@/components/AchievementEffect"; // Konfeti bileşeni
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
@@ -14,10 +16,10 @@ import {
   TrendingUp,
   PlusCircle,
   Sparkles,
-  PieChart as PieIcon,
   UserCircle,
   LogOut,
   Pencil,
+  Trophy,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -42,9 +44,13 @@ export default async function Home() {
 
   await connectDB();
 
-  // 1. Kullanıcının can bilgisini MongoDB'den çekiyoruz
+  // 1. Başarı kontrolünü çalıştır ve sonucu al
+  const newAchievement = await checkAchievements();
+
+  // 2. Kullanıcı verisini çek
   const userData = await User.findOne({ email: session.user.email });
-  const currentHealth = userData?.tosbaaHealth ?? 100; // Eğer veri yoksa %100 başlasın
+  const currentHealth = userData?.tosbaaHealth ?? 100;
+  const achievements = userData?.achievements || [];
 
   const data = await Transaction.find({ userEmail: session.user.email }).sort({
     date: -1,
@@ -58,17 +64,13 @@ export default async function Home() {
     .reduce((acc, curr) => acc + curr.amount, 0);
   const balance = totalIncome - totalExpense;
 
-  const categoryData = data
-    .filter((t) => t.type === "EXPENSE")
-    .reduce((acc: any, curr) => {
-      acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
-      return acc;
-    }, {});
-
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+      {/* 🎉 Yeni başarı kazanıldıysa konfeti patlat */}
+      <AchievementEffect isNew={!!newAchievement} />
+
       <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
-        {/* HEADER KISMI AYNI KALIYOR... */}
+        {/* HEADER */}
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors text-slate-900 dark:text-white">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
@@ -105,7 +107,7 @@ export default async function Home() {
                 <LogOut size={20} />
               </Link>
             </div>
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] text-center">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] text-center text-slate-900 dark:text-white">
               <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 NET BAKİYE
               </p>
@@ -124,13 +126,41 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            {/* 🐢 TOSBAA OYUN ALANI - ARTIK VERİTABANINDAN CAN ALIYOR */}
-            <TosbaaGame
-              initialBalance={balance}
-              initialHealth={currentHealth}
-            />
+            {/* 🐢 TOSBAA OYUN VE BAŞARI ALANI */}
+            <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
+              <TosbaaGame
+                initialBalance={balance}
+                initialHealth={currentHealth}
+              />
 
-            {/* İŞLEM EKLEME FORMU VE LİSTE AYNI KALIYOR... */}
+              {/* 🏆 BAŞARI MADALYALARI */}
+              {achievements.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-indigo-900/50">
+                  <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
+                    <Trophy size={14} className="text-yellow-500" />
+                    KAZANILAN MADALYALAR
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    {achievements.map((ach: any) => (
+                      <div
+                        key={ach.id}
+                        title={ach.description}
+                        className="group relative flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-900/40 border border-indigo-800 hover:border-yellow-500/50 transition-all cursor-help"
+                      >
+                        <span className="text-3xl group-hover:scale-125 transition-transform">
+                          {ach.icon}
+                        </span>
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity font-bold">
+                          {ach.title}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* İŞLEM EKLEME FORMU */}
             <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black p-6 md:p-8 shadow-2xl transition-colors">
               <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
               <h3 className="relative mb-6 flex items-center gap-2 text-lg font-bold text-white">
@@ -181,7 +211,7 @@ export default async function Home() {
               </form>
             </section>
 
-            {/* LİSTE KISMI... */}
+            {/* LİSTE */}
             <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-slate-100">
               <div className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-6 text-xs font-black uppercase tracking-widest text-slate-400 text-center">
                 Son Hareketler
@@ -218,7 +248,7 @@ export default async function Home() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 text-slate-900 dark:text-white">
                         <span
                           className={`text-xl font-black ${
                             t.type === "INCOME" ? "text-emerald-600" : ""
@@ -250,7 +280,6 @@ export default async function Home() {
           </div>
 
           <div className="space-y-6">
-            {/* ANALİZ, GELİR/GİDER VE DİĞER BUTONLAR... */}
             <AiAdviceButton income={totalIncome} expense={totalExpense} />
             <div className="mt-6">
               <AykutNotificationButton

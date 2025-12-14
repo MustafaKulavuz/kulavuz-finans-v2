@@ -17,15 +17,24 @@ const UserSchema = new Schema({
   password: {
     type: String,
     required: [true, "Şifre zorunludur"],
-    select: false, // Güvenlik: Kullanıcıyı çekerken şifresi gelmesin
+    select: false,
   },
-  // 👇 TOSBAA CAN ALANI EKLENDİ 👇
   tosbaaHealth: {
     type: Number,
-    default: 100, // Yeni kullanıcılar tam enerjiyle başlar
+    default: 100,
     min: 0,
     max: 100,
   },
+  // 👇 BAŞARI SİSTEMİ ALANI EKLENDİ 👇
+  achievements: [
+    {
+      id: { type: String, required: true },
+      title: { type: String, required: true },
+      description: String,
+      icon: String, // Emoji veya ikon ismi
+      unlockedAt: { type: Date, default: Date.now },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

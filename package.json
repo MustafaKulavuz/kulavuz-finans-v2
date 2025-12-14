@@ -13,6 +13,7 @@
     "@capacitor/local-notifications": "^8.0.0",
     "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.3",
+    "canvas-confetti": "^1.9.4",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.26",
     "jspdf": "^3.0.4",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/bcryptjs": "^2.4.6",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "25.0.1",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
