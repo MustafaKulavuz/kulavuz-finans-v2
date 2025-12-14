@@ -1,41 +1,59 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import TosbaaPet from "./TosbaaPet";
-import { Utensils } from "lucide-react";
+import { Utensils, Loader2 } from "lucide-react";
+import { feedTosbaaAction } from "@/actions/transaction"; // Aksiyonu içe aktardık
 
 export default function TosbaaGame({
   initialBalance,
+  initialHealth,
 }: {
   initialBalance: number;
+  initialHealth: number;
 }) {
-  const [health, setHealth] = useState(100);
-  const [currentBalance, setCurrentBalance] = useState(initialBalance);
+  const [isPending, startTransition] = useTransition();
 
-  const feedTosbaa = () => {
-    if (currentBalance >= 50) {
-      setHealth((prev) => Math.min(100, prev + 20)); // Canı %20 artır
-      setCurrentBalance((prev) => prev - 50); // Bakiyeyi düşür
-      alert("Ham ham ham! 🍕 Tosbaa çok mutlu.");
-    } else {
+  const handleFeed = () => {
+    if (initialBalance < 50) {
       alert("Cüzdan boş, Tosbaa aç kaldı! 🐢❌");
+      return;
     }
+
+    // Server Action'ı tetikliyoruz
+    startTransition(async () => {
+      await feedTosbaaAction();
+      // İşlem bitince sayfa otomatik yenilenir (revalidatePath sayesinde)
+    });
   };
 
   return (
     <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
-      {/* Buradaki health prop'u sayesinde bar hareket edecek */}
-      <TosbaaPet balance={currentBalance} health={health} />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
+
+      {/* Veritabanından gelen canı buraya paslıyoruz */}
+      <TosbaaPet balance={initialBalance} health={initialHealth} />
 
       <div className="mt-6 flex flex-col gap-3">
         <button
-          onClick={feedTosbaa}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 p-4 font-black text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
+          onClick={handleFeed}
+          disabled={isPending}
+          className={`flex w-full items-center justify-center gap-2 rounded-2xl p-4 font-black text-white shadow-lg transition-transform active:scale-95 ${
+            isPending
+              ? "bg-orange-800 cursor-not-allowed"
+              : "bg-orange-500 hover:scale-[1.02]"
+          }`}
         >
-          <Utensils size={20} />
-          <span>TOSBAA'YI BESLE (50 ₺)</span>
+          {isPending ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : (
+            <Utensils size={20} />
+          )}
+          <span>{isPending ? "BESLENİYOR..." : "TOSBAA'YI BESLE (50 ₺)"}</span>
         </button>
         <p className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
-          Enerji: %{health} - Besleyince canlanır!
+          {initialHealth <= 20
+            ? "DİKKAT: Tosbaa çok acıktı! 🤒"
+            : "Enerji Veritabanına Kaydediliyor 💾"}
         </p>
       </div>
     </section>

@@ -19,6 +19,13 @@ const UserSchema = new Schema({
     required: [true, "Şifre zorunludur"],
     select: false, // Güvenlik: Kullanıcıyı çekerken şifresi gelmesin
   },
+  // 👇 TOSBAA CAN ALANI EKLENDİ 👇
+  tosbaaHealth: {
+    type: Number,
+    default: 100, // Yeni kullanıcılar tam enerjiyle başlar
+    min: 0,
+    max: 100,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

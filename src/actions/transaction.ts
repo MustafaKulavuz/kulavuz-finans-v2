@@ -2,14 +2,11 @@
 
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
+import { User } from "@/models/User"; // Kullanıcı modelini ekledik
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-
-// --- MEVCUT EKLEME VE SİLME FONKSİYONLARI BURADA KALSIN (Aynen Koru) ---
-// (Eğer silindiğini düşünüyorsan önceki kodlarını buraya tekrar yapıştırabilirsin)
-// Ben senin için tam halini veriyorum garanti olsun:
 
 export async function addTransaction(formData: FormData) {
   const session = await getServerSession(authOptions);
@@ -26,6 +23,8 @@ export async function addTransaction(formData: FormData) {
 
   try {
     await connectDB();
+
+    // 1. İşlemi Kaydet
     await Transaction.create({
       description,
       amount,
@@ -34,9 +33,48 @@ export async function addTransaction(formData: FormData) {
       userEmail: session.user.email,
       date: new Date(),
     });
+
+    // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür
+    if (type === "EXPENSE") {
+      await User.findOneAndUpdate(
+        { email: session.user.email },
+        {
+          $inc: { tosbaaHealth: -10 }, // Canı 10 düşür
+          // Canın 0'ın altına düşmesini önlemek için ek güvenlik (Opsiyonel)
+        },
+        { new: true }
+      );
+    }
+
     revalidatePath("/");
   } catch (error) {
     console.error("Ekleme hatası:", error);
+  }
+}
+
+// TOSBAA BESLEME AKSİYONU (Yeni Eklendi)
+export async function feedTosbaaAction() {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.email) return;
+
+  try {
+    await connectDB();
+
+    // Kullanıcının canını %20 artır, ama 100'ü geçmesin
+    // MongoDB $min ve $max operatörleri ile bunu sınırlayabiliriz
+    await User.findOneAndUpdate({ email: session.user.email }, [
+      {
+        $set: {
+          tosbaaHealth: {
+            $min: [100, { $add: ["$tosbaaHealth", 20] }],
+          },
+        },
+      },
+    ]);
+
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Besleme Hatası:", error);
   }
 }
 
@@ -56,9 +94,6 @@ export async function deleteTransaction(id: string) {
   }
 }
 
-// --- YENİ EKLENENLER: DÜZENLEME İÇİN ---
-
-// 1. Tek bir harcamanın detayını getir (Düzenleme sayfasına veriyi doldurmak için)
 export async function getTransactionById(id: string) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return null;
@@ -69,7 +104,6 @@ export async function getTransactionById(id: string) {
     userEmail: session.user.email,
   });
 
-  // MongoDB verisini düz objeye çevirip döndür
   if (!transaction) return null;
   return {
     description: transaction.description,
@@ -79,7 +113,6 @@ export async function getTransactionById(id: string) {
   };
 }
 
-// 2. Harcamayı Güncelle
 export async function updateTransaction(id: string, formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return;
@@ -94,7 +127,7 @@ export async function updateTransaction(id: string, formData: FormData) {
   try {
     await connectDB();
     await Transaction.findOneAndUpdate(
-      { _id: id, userEmail: session.user.email }, // Sadece bu kullanıcıya aitse güncelle
+      { _id: id, userEmail: session.user.email },
       { description, amount, category, type }
     );
   } catch (error) {
@@ -102,5 +135,5 @@ export async function updateTransaction(id: string, formData: FormData) {
   }
 
   revalidatePath("/");
-  redirect("/"); // İşlem bitince ana sayfaya dön
+  redirect("/");
 }
