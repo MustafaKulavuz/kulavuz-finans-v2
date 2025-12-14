@@ -151,3 +151,27 @@ export async function updateTransaction(id: string, formData: FormData) {
   revalidatePath("/");
   redirect("/");
 }
+// Sadece reklam izleyenler için bedava besleme
+export async function rewardFeedAction() {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.email) return;
+
+  try {
+    await connectDB();
+
+    // Para düşürme yok! Sadece can artışı var
+    await User.findOneAndUpdate({ email: session.user.email }, [
+      {
+        $set: {
+          tosbaaHealth: {
+            $min: [100, { $add: ["$tosbaaHealth", 20] }],
+          },
+        },
+      },
+    ]);
+
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Ödüllü besleme hatası:", error);
+  }
+}
