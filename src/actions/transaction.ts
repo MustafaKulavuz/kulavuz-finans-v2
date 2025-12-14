@@ -35,12 +35,13 @@ export async function addTransaction(formData: FormData) {
     });
 
     // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür
+    // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür
     if (type === "EXPENSE") {
       await User.findOneAndUpdate(
         { email: session.user.email },
         {
-          $inc: { tosbaaHealth: -10 }, // Canı 10 düşür
-          // Canın 0'ın altına düşmesini önlemek için ek güvenlik (Opsiyonel)
+          // Canı doğrudan 10 azaltıyoruz
+          $inc: { tosbaaHealth: -10 },
         },
         { new: true }
       );
