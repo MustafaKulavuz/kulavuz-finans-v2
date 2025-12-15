@@ -35,7 +35,7 @@ export async function addTransaction(formData: FormData) {
       date: new Date(),
     });
 
-    // 2. Eğer bu bir harcamaysa Tosbaa'nın canını düşür (En az 0 olacak şekilde)
+    // 2. Harcama ise Tosbaa'nın canını düşür (Min 0)
     if (type === "EXPENSE") {
       await User.findOneAndUpdate({ email: session.user.email }, [
         {
@@ -54,7 +54,7 @@ export async function addTransaction(formData: FormData) {
   }
 }
 
-// --- TOSBAA BESLEME AKSİYONU (Para Düşmeli Versiyon) ---
+// --- TOSBAA BESLEME (Para Düşmeli) ---
 export async function feedTosbaaAction() {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.email) return;
@@ -62,7 +62,7 @@ export async function feedTosbaaAction() {
   try {
     await connectDB();
 
-    // 1. Adım: Bakiyeden 50 TL düşmek için harcama kaydı oluştur
+    // 1. Bakiyeden 50 TL düşmek için kayıt oluştur
     await Transaction.create({
       description: "Tosbaa Besleme (Pizza 🍕)",
       amount: 50,
@@ -72,7 +72,7 @@ export async function feedTosbaaAction() {
       date: new Date(),
     });
 
-    // 2. Adım: Kullanıcının canını %20 artır, ama 100'ü geçmesin
+    // 2. Canı %20 artır (Max 100)
     await User.findOneAndUpdate({ email: session.user.email }, [
       {
         $set: {
@@ -86,6 +86,31 @@ export async function feedTosbaaAction() {
     revalidatePath("/");
   } catch (error) {
     console.error("Besleme Hatası:", error);
+  }
+}
+
+// --- REKLAM İZLEYEREK BESLEME (Para Düşmez) ---
+export async function rewardFeedAction() {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.email) return;
+
+  try {
+    await connectDB();
+
+    // Sadece can artışı (Bedava besleme)
+    await User.findOneAndUpdate({ email: session.user.email }, [
+      {
+        $set: {
+          tosbaaHealth: {
+            $min: [100, { $add: ["$tosbaaHealth", 20] }],
+          },
+        },
+      },
+    ]);
+
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Ödüllü besleme hatası:", error);
   }
 }
 
@@ -150,28 +175,4 @@ export async function updateTransaction(id: string, formData: FormData) {
 
   revalidatePath("/");
   redirect("/");
-}
-// Sadece reklam izleyenler için bedava besleme
-export async function rewardFeedAction() {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user?.email) return;
-
-  try {
-    await connectDB();
-
-    // Para düşürme yok! Sadece can artışı var
-    await User.findOneAndUpdate({ email: session.user.email }, [
-      {
-        $set: {
-          tosbaaHealth: {
-            $min: [100, { $add: ["$tosbaaHealth", 20] }],
-          },
-        },
-      },
-    ]);
-
-    revalidatePath("/");
-  } catch (error) {
-    console.error("Ödüllü besleme hatası:", error);
-  }
 }

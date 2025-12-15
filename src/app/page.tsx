@@ -2,8 +2,9 @@ import { addTransaction, deleteTransaction } from "@/actions/transaction";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
-import { checkAchievements } from "@/actions/achievements";
-import AchievementEffect from "@/components/AchievementEffect"; // Konfeti bileşeni
+import { checkAchievements } from "@/actions/achievements"; // Başarı kontrolü
+import AchievementEffect from "@/components/AchievementEffect"; // Konfeti efekti
+import RewardAdButton from "@/components/RewardAd"; // Reklam butonu
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
@@ -77,7 +78,7 @@ export default async function Home() {
               💲
             </div>
             <div>
-              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight">
+              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                 Kulavuz Finans{" "}
                 <Sparkles className="text-indigo-500" size={24} />
               </h1>
@@ -132,6 +133,11 @@ export default async function Home() {
                 initialBalance={balance}
                 initialHealth={currentHealth}
               />
+
+              {/* 🎬 ÖDÜLLÜ REKLAM BUTONU BURAYA EKLENDİ */}
+              <div className="mt-4">
+                <RewardAdButton />
+              </div>
 
               {/* 🏆 BAŞARI MADALYALARI */}
               {achievements.length > 0 && (
@@ -242,16 +248,20 @@ export default async function Home() {
                           )}
                         </div>
                         <div>
-                          <p className="font-bold">{t.description}</p>
+                          <p className="font-bold text-slate-900 dark:text-white">
+                            {t.description}
+                          </p>
                           <span className="inline-block rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                             {t.category}
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-4">
                         <span
                           className={`text-xl font-black ${
-                            t.type === "INCOME" ? "text-emerald-600" : ""
+                            t.type === "INCOME"
+                              ? "text-emerald-600"
+                              : "text-rose-600"
                           }`}
                         >
                           {t.type === "INCOME" ? "+" : "-"}
