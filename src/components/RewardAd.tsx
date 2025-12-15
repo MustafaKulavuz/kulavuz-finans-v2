@@ -1,8 +1,9 @@
 "use client";
 import { AdMob, RewardAdOptions } from "@capacitor-community/admob";
+import { Capacitor } from "@capacitor/core"; // Platform kontrolü için
 import { useState, useEffect } from "react";
 import { PlayCircle, Loader2 } from "lucide-react";
-import { rewardFeedAction } from "@/actions/transaction"; // Bedava besleme aksiyonu
+import { rewardFeedAction } from "@/actions/transaction";
 
 export default function RewardAdButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,28 +11,36 @@ export default function RewardAdButton() {
 
   useEffect(() => {
     setIsMounted(true);
-    AdMob.initialize(); // AdMob motorunu başlatır
+    if (Capacitor.getPlatform() !== "web") {
+      AdMob.initialize();
+    }
   }, []);
 
   const showRewardAd = async () => {
+    // 🌍 Tarayıcıda (Chrome) reklamı engelle
+    if (Capacitor.getPlatform() === "web") {
+      alert(
+        "Reklamlar sadece mobil uygulamada (APK) izlenebilir. Chrome'da reklam gösterilemez."
+      );
+      return;
+    }
+
     setIsLoading(true);
     try {
       const options: RewardAdOptions = {
-        // 👇 GERÇEK REKLAM BİRİMİ KİMLİĞİN BURAYA EKLENDİ
-        adId: "ca-app-pub-5619569366075074/5847712645",
+        adId: "ca-app-pub-5619569366075074/5847712645", // Canlı reklam ID'n
       };
 
-      await AdMob.prepareRewardVideoAd(options); // Reklamı sunucudan çeker
-      const rewardItem = await AdMob.showRewardVideoAd(); // Kullanıcıya gösterir
+      await AdMob.prepareRewardVideoAd(options);
+      const rewardItem = await AdMob.showRewardVideoAd();
 
       if (rewardItem) {
-        // Reklam tam izlendiğinde veritabanında canı artırır
         await rewardFeedAction();
-        alert("Tebrikler! Reklam izlediğin için Tosbaa bedavaya doydu. 🐢🍕");
+        alert("Reklam başarıyla izlendi! 🐢🍕");
       }
     } catch (error) {
       console.error("Reklam hatası:", error);
-      alert("Şu an reklam hazır değil, lütfen biraz sonra tekrar deneyin.");
+      alert("Şu an reklam hazır değil. Lütfen gerçek bir cihazda deneyin.");
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +60,7 @@ export default function RewardAdButton() {
         <PlayCircle size={18} />
       )}
       <span>
-        {isLoading ? "REKLAM YÜKLENİYOR..." : "REKLAM İZLE VE CAN VER (+20)"}
+        {isLoading ? "YÜKLENİYOR..." : "REKLAM İZLE VE CAN VER (+20)"}
       </span>
     </button>
   );
