@@ -179,14 +179,18 @@ export default async function Home() {
                   name="category"
                   className="md:col-span-1 appearance-none rounded-2xl border-none bg-slate-800 dark:bg-slate-900 p-4 font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500"
                 >
+                  <option value="Maaş">💰 Maaş</option>
+                  <option value="Ek Gelir">💵 Ek Gelir</option>
                   <option value="Mutfak">🛒 Mutfak</option>
                   <option value="Fatura">📄 Fatura</option>
                   <option value="Eğlence">🎉 Eğlence</option>
                   <option value="Sabit Gider">🏠 Sabit Gider</option>
                   <option value="Ulaşım">🚗 Ulaşım</option>
                   <option value="Giyim">👕 Giyim</option>
-                  <option value="Maaş">💰 Maaş</option>
-                  <option value="Ek Gelir">💵 Ek Gelir</option>
+                  {/* <option value="Maaş"> Maaş</option>*/}
+                  <option value="Yatırım">📈 Yatırım</option>
+                  <option value="Sağlık">💊 Sağlık</option>
+                  <option value="Diğer">🤷‍♂️ Diğer</option>
                 </select>
                 <input
                   name="description"
