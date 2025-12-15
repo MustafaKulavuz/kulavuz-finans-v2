@@ -2,42 +2,42 @@
 import { AdMob, RewardAdOptions } from "@capacitor-community/admob";
 import { useState, useEffect } from "react";
 import { PlayCircle, Loader2 } from "lucide-react";
-// 👇 BURAYI DEĞİŞTİRDİK: Para düşürmeyen yeni aksiyonu çağırıyoruz
-import { rewardFeedAction } from "@/actions/transaction";
+import { rewardFeedAction } from "@/actions/transaction"; // Bedava besleme aksiyonu
 
 export default function RewardAdButton() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); // Hydration hatasını önlemek için
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    AdMob.initialize(); // Reklam motorunu başlat
+    AdMob.initialize(); // AdMob motorunu başlatır
   }, []);
 
   const showRewardAd = async () => {
     setIsLoading(true);
     try {
       const options: RewardAdOptions = {
-        adId: "ca-app-pub-3940256099942544/5224354917", // Test ID
+        // 👇 GERÇEK REKLAM BİRİMİ KİMLİĞİN BURAYA EKLENDİ
+        adId: "ca-app-pub-5619569366075074/5847712645",
       };
 
-      await AdMob.prepareRewardVideoAd(options); // Reklamı hazırla
-      const rewardItem = await AdMob.showRewardVideoAd(); // Reklamı göster
+      await AdMob.prepareRewardVideoAd(options); // Reklamı sunucudan çeker
+      const rewardItem = await AdMob.showRewardVideoAd(); // Kullanıcıya gösterir
 
       if (rewardItem) {
-        // 👇 BURAYI DEĞİŞTİRDİK: Bedava besleme fonksiyonu çalışır
+        // Reklam tam izlendiğinde veritabanında canı artırır
         await rewardFeedAction();
         alert("Tebrikler! Reklam izlediğin için Tosbaa bedavaya doydu. 🐢🍕");
       }
     } catch (error) {
       console.error("Reklam hatası:", error);
-      alert("Reklam şu an hazır değil, lütfen az sonra tekrar deneyin.");
+      alert("Şu an reklam hazır değil, lütfen biraz sonra tekrar deneyin.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isMounted) return null; // Sunucu-istemci uyumsuzluğunu önler
+  if (!isMounted) return null;
 
   return (
     <button
