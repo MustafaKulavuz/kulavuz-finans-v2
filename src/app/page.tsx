@@ -27,6 +27,8 @@ import {
   LogOut,
   Pencil,
   Trophy,
+  BarChart3, // Yeni ikon eklendi
+  ArrowRight, // Yeni ikon eklendi
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -165,6 +167,31 @@ export default async function Home() {
               </div>
             )}
 
+            {/* 📊 AYLIK RAPOR ANALİZ KARTI (Yeni Eklendi) */}
+            <section className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
+              <BarChart3 className="absolute -right-6 -bottom-6 w-40 h-40 opacity-10 rotate-12 group-hover:scale-110 transition-transform duration-500" />
+              <div className="relative z-10 space-y-4">
+                <div className="space-y-1">
+                  <h2 className="text-sm font-bold uppercase tracking-widest opacity-80">
+                    Aylık Analiz
+                  </h2>
+                  <p className="text-3xl font-black">
+                    Nereye Gidiyor Bu Paralar?
+                  </p>
+                </div>
+                <p className="text-indigo-100 max-w-md text-sm leading-relaxed">
+                  Bu ayki harcamalarını kategorilere göre ayırdık. Tosbaa'nın
+                  sağlığını korumak için hangi giderleri kısman gerektiğini gör.
+                </p>
+                <Link
+                  href="/reports"
+                  className="inline-flex items-center gap-2 bg-white text-indigo-700 px-6 py-3 rounded-2xl font-black text-sm hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95"
+                >
+                  DETAYLI RAPORU GÖR <ArrowRight size={18} />
+                </Link>
+              </div>
+            </section>
+
             {/* 🐢 TOSBAA OYUN VE KAMERA ALANI */}
             <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
               <TosbaaGame
@@ -178,6 +205,31 @@ export default async function Home() {
                 </div>
                 <BannerAd />
               </div>
+
+              {achievements.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-indigo-900/50">
+                  <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
+                    <Trophy size={14} className="text-yellow-500" /> KAZANILAN
+                    MADALYALAR
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    {achievements.map((ach: any) => (
+                      <div
+                        key={ach.id}
+                        title={ach.description}
+                        className="group relative flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-900/40 border border-indigo-800 hover:border-yellow-500/50 transition-all cursor-help"
+                      >
+                        <span className="text-3xl group-hover:scale-125 transition-transform">
+                          {ach.icon}
+                        </span>
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity font-bold">
+                          {ach.title}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* İŞLEM EKLEME FORMU */}

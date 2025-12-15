@@ -29,6 +29,7 @@
     "openai": "^4.72.0",
     "react": "^18",
     "react-dom": "^18",
+    "recharts": "^3.6.0",
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
