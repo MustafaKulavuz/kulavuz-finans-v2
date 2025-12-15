@@ -1,4 +1,8 @@
-import { addTransaction, deleteTransaction } from "@/actions/transaction";
+import {
+  addTransaction,
+  deleteTransaction,
+  resetMonthlyExpenses,
+} from "@/actions/transaction"; // resetMonthlyExpenses eklendi
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
@@ -6,7 +10,7 @@ import { checkAchievements } from "@/actions/achievements";
 import AchievementEffect from "@/components/AchievementEffect";
 import RewardAdButton from "@/components/RewardAd";
 import TakeReceiptButton from "@/components/TakeReceiptButton";
-import BannerAd from "@/components/BannerAd"; // Yeni Banner Reklam
+import BannerAd from "@/components/BannerAd";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
@@ -46,6 +50,11 @@ export default async function Home() {
   }
 
   await connectDB();
+
+  // 🕒 Otomatik Ay Başı Sıfırlama Kontrolü
+  // Bu fonksiyon her sayfa yüklendiğinde çalışır ve ayın 1'i ise eski harcamaları siler.
+  await resetMonthlyExpenses();
+
   const newAchievement = await checkAchievements();
   const userData = await User.findOne({ email: session.user.email });
   const currentHealth = userData?.tosbaaHealth ?? 100;
@@ -71,7 +80,7 @@ export default async function Home() {
         {/* HEADER */}
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors text-slate-900 dark:text-white">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
+            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl text-slate-900 dark:text-white">
               💲
             </div>
             <div>
@@ -94,7 +103,7 @@ export default async function Home() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   KULLANICI
                 </span>
-                <span className="font-bold leading-tight">
+                <span className="font-bold leading-tight text-slate-900 dark:text-white">
                   {session.user.name}
                 </span>
               </div>
@@ -137,7 +146,7 @@ export default async function Home() {
                   <RewardAdButton />
                   <TakeReceiptButton />
                 </div>
-                <BannerAd /> {/* Video olmayan sabit reklam */}
+                <BannerAd />
               </div>
 
               {achievements.length > 0 && (

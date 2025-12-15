@@ -210,3 +210,29 @@ export async function addReceiptTransactionAction(
     return { success: false };
   }
 }
+// src/actions/transaction.ts dosyasına ekleyin
+
+export async function resetMonthlyExpenses() {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.email) return;
+
+  try {
+    await connectDB();
+
+    const now = new Date();
+    // Mevcut ayın başlangıcını bul (Örn: 2024-05-01 00:00:00)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // 🧹 Sadece bu kullanıcıya ait, tipi "EXPENSE" olan ve tarihi bu aydan eski olanları sil
+    await Transaction.deleteMany({
+      userEmail: session.user.email,
+      type: "EXPENSE",
+      date: { $lt: startOfMonth },
+    });
+
+    console.log(`${session.user.name} için eski ayın harcamaları temizlendi.`);
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Ay sıfırlama hatası:", error);
+  }
+}
