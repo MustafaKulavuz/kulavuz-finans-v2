@@ -176,3 +176,37 @@ export async function updateTransaction(id: string, formData: FormData) {
   revalidatePath("/");
   redirect("/");
 }
+// Fişten okunan veriyi otomatik kaydetme
+export async function addReceiptTransactionAction(
+  amount: number,
+  description: string
+) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.email) return;
+
+  try {
+    await connectDB();
+
+    // 1. Harcamayı kaydet
+    await Transaction.create({
+      description: `Fiş: ${description}`,
+      amount: amount,
+      category: "Mutfak", // Varsayılan kategori
+      type: "EXPENSE",
+      userEmail: session.user.email,
+      date: new Date(),
+    });
+
+    // 2. Tosbaa'nın canını düşür
+    await User.findOneAndUpdate(
+      { email: session.user.email },
+      { $inc: { tosbaaHealth: -10 } }
+    );
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Fiş kayıt hatası:", error);
+    return { success: false };
+  }
+}
