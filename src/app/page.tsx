@@ -2,9 +2,10 @@ import { addTransaction, deleteTransaction } from "@/actions/transaction";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
-import { checkAchievements } from "@/actions/achievements"; // Başarı kontrolü
-import AchievementEffect from "@/components/AchievementEffect"; // Konfeti efekti
-import RewardAdButton from "@/components/RewardAd"; // Reklam butonu
+import { checkAchievements } from "@/actions/achievements";
+import AchievementEffect from "@/components/AchievementEffect";
+import RewardAdButton from "@/components/RewardAd";
+import TakeReceiptButton from "@/components/TakeReceiptButton"; // Yeni Kamera Bileşeni
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
@@ -21,6 +22,7 @@ import {
   LogOut,
   Pencil,
   Trophy,
+  Camera,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -45,10 +47,7 @@ export default async function Home() {
 
   await connectDB();
 
-  // 1. Başarı kontrolünü çalıştır ve sonucu al
   const newAchievement = await checkAchievements();
-
-  // 2. Kullanıcı verisini çek
   const userData = await User.findOne({ email: session.user.email });
   const currentHealth = userData?.tosbaaHealth ?? 100;
   const achievements = userData?.achievements || [];
@@ -67,7 +66,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
-      {/* 🎉 Yeni başarı kazanıldıysa konfeti patlat */}
       <AchievementEffect isNew={!!newAchievement} />
 
       <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
@@ -127,19 +125,19 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            {/* 🐢 TOSBAA OYUN VE BAŞARI ALANI */}
+            {/* 🐢 TOSBAA OYUN, REKLAM VE KAMERA ALANI */}
             <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
               <TosbaaGame
                 initialBalance={balance}
                 initialHealth={currentHealth}
               />
 
-              {/* 🎬 ÖDÜLLÜ REKLAM BUTONU BURAYA EKLENDİ */}
-              <div className="mt-4">
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <RewardAdButton />
+                {/* 📸 FİŞ OKUMA BUTONU BURAYA EKLENDİ */}
+                <TakeReceiptButton />
               </div>
 
-              {/* 🏆 BAŞARI MADALYALARI */}
               {achievements.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-indigo-900/50">
                   <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
