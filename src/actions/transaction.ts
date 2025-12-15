@@ -236,3 +236,14 @@ export async function resetMonthlyExpenses() {
     console.error("Ay sıfırlama hatası:", error);
   }
 }
+// Basit bir günlük kontrol mantığı
+const checkDailyLimit = (data: any[], newAmount: number) => {
+  const today = new Date().toDateString();
+  const todayTotal = data
+    .filter(
+      (t) => t.type === "EXPENSE" && new Date(t.date).toDateString() === today
+    )
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  return todayTotal + newAmount > 500;
+};

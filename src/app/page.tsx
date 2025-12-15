@@ -2,7 +2,7 @@ import {
   addTransaction,
   deleteTransaction,
   resetMonthlyExpenses,
-} from "@/actions/transaction"; // resetMonthlyExpenses eklendi
+} from "@/actions/transaction";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
@@ -52,7 +52,6 @@ export default async function Home() {
   await connectDB();
 
   // 🕒 Otomatik Ay Başı Sıfırlama Kontrolü
-  // Bu fonksiyon her sayfa yüklendiğinde çalışır ve ayın 1'i ise eski harcamaları siler.
   await resetMonthlyExpenses();
 
   const newAchievement = await checkAchievements();
@@ -63,6 +62,14 @@ export default async function Home() {
   const data = await Transaction.find({ userEmail: session.user.email }).sort({
     date: -1,
   });
+
+  // 💰 GÜNLÜK HARCAMA KONTROLÜ (500 TL LİMİTİ)
+  const today = new Date().toDateString();
+  const todayExpenses = data
+    .filter(
+      (t) => t.type === "EXPENSE" && new Date(t.date).toDateString() === today
+    )
+    .reduce((acc, curr) => acc + curr.amount, 0);
 
   const totalIncome = data
     .filter((t) => t.type === "INCOME")
@@ -133,14 +140,37 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
+            {/* ⚠️ GÜNLÜK LİMİT UYARISI */}
+            {todayExpenses > 500 && (
+              <div className="animate-bounce bg-rose-600 text-white p-4 rounded-2xl flex items-center justify-between font-black shadow-lg">
+                <span>
+                  📢 GÜNLÜK 500 TL LİMİTİ AŞILDI! (
+                  {todayExpenses.toLocaleString()} ₺)
+                </span>
+                <script
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                  (function() {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                  })();
+                `,
+                  }}
+                />
+              </div>
+            )}
+
             {/* 🐢 TOSBAA OYUN VE KAMERA ALANI */}
             <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
               <TosbaaGame
                 initialBalance={balance}
                 initialHealth={currentHealth}
               />
-
-              {/* 🎬 REKLAM VE KAMERA ARAÇLARI */}
               <div className="mt-4 space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <RewardAdButton />
@@ -148,36 +178,10 @@ export default async function Home() {
                 </div>
                 <BannerAd />
               </div>
-
-              {achievements.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-indigo-900/50">
-                  <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
-                    <Trophy size={14} className="text-yellow-500" /> KAZANILAN
-                    MADALYALAR
-                  </div>
-                  <div className="flex flex-wrap gap-4">
-                    {achievements.map((ach: any) => (
-                      <div
-                        key={ach.id}
-                        title={ach.description}
-                        className="group relative flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-900/40 border border-indigo-800 hover:border-yellow-500/50 transition-all cursor-help"
-                      >
-                        <span className="text-3xl group-hover:scale-125 transition-transform">
-                          {ach.icon}
-                        </span>
-                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transition-opacity font-bold">
-                          {ach.title}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </section>
 
             {/* İŞLEM EKLEME FORMU */}
             <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black p-6 md:p-8 shadow-2xl transition-colors">
-              <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
               <h3 className="relative mb-6 flex items-center gap-2 text-lg font-bold text-white">
                 <PlusCircle className="text-indigo-400" size={24} /> Yeni İşlem
                 Ekle
