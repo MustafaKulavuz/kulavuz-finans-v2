@@ -5,7 +5,8 @@ import { User } from "@/models/User";
 import { checkAchievements } from "@/actions/achievements";
 import AchievementEffect from "@/components/AchievementEffect";
 import RewardAdButton from "@/components/RewardAd";
-import TakeReceiptButton from "@/components/TakeReceiptButton"; // Yeni Kamera Bileşeni
+import TakeReceiptButton from "@/components/TakeReceiptButton";
+import BannerAd from "@/components/BannerAd"; // Yeni Banner Reklam
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
@@ -22,7 +23,6 @@ import {
   LogOut,
   Pencil,
   Trophy,
-  Camera,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -46,7 +46,6 @@ export default async function Home() {
   }
 
   await connectDB();
-
   const newAchievement = await checkAchievements();
   const userData = await User.findOne({ email: session.user.email });
   const currentHealth = userData?.tosbaaHealth ?? 100;
@@ -125,24 +124,27 @@ export default async function Home() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            {/* 🐢 TOSBAA OYUN, REKLAM VE KAMERA ALANI */}
+            {/* 🐢 TOSBAA OYUN VE KAMERA ALANI */}
             <section className="rounded-[2.5rem] bg-indigo-950 p-6 shadow-2xl border border-indigo-900 overflow-hidden relative">
               <TosbaaGame
                 initialBalance={balance}
                 initialHealth={currentHealth}
               />
 
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <RewardAdButton />
-                {/* 📸 FİŞ OKUMA BUTONU BURAYA EKLENDİ */}
-                <TakeReceiptButton />
+              {/* 🎬 REKLAM VE KAMERA ARAÇLARI */}
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RewardAdButton />
+                  <TakeReceiptButton />
+                </div>
+                <BannerAd /> {/* Video olmayan sabit reklam */}
               </div>
 
               {achievements.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-indigo-900/50">
                   <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
-                    <Trophy size={14} className="text-yellow-500" />
-                    KAZANILAN MADALYALAR
+                    <Trophy size={14} className="text-yellow-500" /> KAZANILAN
+                    MADALYALAR
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {achievements.map((ach: any) => (
@@ -187,7 +189,6 @@ export default async function Home() {
                   <option value="Sabit Gider">🏠 Sabit Gider</option>
                   <option value="Ulaşım">🚗 Ulaşım</option>
                   <option value="Giyim">👕 Giyim</option>
-                  {/* <option value="Maaş"> Maaş</option>*/}
                   <option value="Yatırım">📈 Yatırım</option>
                   <option value="Sağlık">💊 Sağlık</option>
                   <option value="Diğer">🤷‍♂️ Diğer</option>
