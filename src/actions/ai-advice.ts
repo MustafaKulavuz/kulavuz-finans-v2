@@ -2,7 +2,10 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Parametrelere assets ve rates eklendi
+/**
+ * Tosbaa Yatırım Danışmanı Fonksiyonu
+ * Kullanıcının gelir, gider ve varlık verilerini analiz ederek strateji sunar.
+ */
 export async function getFinancialAdvice(
   income: number,
   expense: number,
@@ -11,51 +14,58 @@ export async function getFinancialAdvice(
 ) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return "API Anahtarı bulunamadı.";
+    if (!apiKey)
+      return "API Anahtarı bulunamadı. Lütfen sistem yöneticisine başvurun.";
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Not: Güncel kararlı model gemini-1.5-flash'tır
+    // En kararlı ve hızlı model sürümü kullanılıyor
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Varlıkların metne dökülmesi
+    // Varlıkların metne dökülmesi ve güvenli veri kontrolü
     const assetDetail =
-      assets.length > 0
+      assets && assets.length > 0
         ? assets
             .map(
               (a) =>
                 `- ${a.type}: ${a.amount} birim (Anlık Kur: ${
-                  rates[a.type] || 1
+                  rates[a.type] || "Veri Alınamadı"
                 } TL)`
             )
             .join("\n")
         : "Henüz bir yatırım varlığı (USD, GOLD vb.) bulunmuyor.";
 
     const prompt = `
-      Sen 'Tosbaa' adında, ciddi, bilge ve stratejik bir finans danışmanısın. Artık yatırım analizi de yapıyorsun.
+      Sen 'Tosbaa' adında, ciddi, bilge ve stratejik bir finans danışmanısın. Yatırım analizi konusunda uzmansın.
       
       Kullanıcının Finansal Verileri:
       - Aylık Gelir: ${income} TL
       - Aylık Gider: ${expense} TL
-      - Net Bakiye: ${income - expense} TL
+      - Aylık Net Kalan: ${income - expense} TL
       
-      Yatırım Portföyü:
+      Mevcut Yatırım Portföyü:
       ${assetDetail}
       
-      GÖREVİN VE KURALLARIN:
-      
-      1. ANALİZ: Kullanıcının harcama/gelir dengesini ve portföy dağılımını (Dolar, Altın vb.) hızlıca analiz et.
-      2. STRATEJİ: Eğer nakit TL birikimi fazlaysa, enflasyona karşı korunmak için mevcut portföyüne (USD, EUR veya GOLD) ekleme yapmasını öner.
-      3. PORTFÖY ÇEŞİTLİLİĞİ: Sadece tek bir varlık türü varsa (örneğin sadece Altın), risk yönetimi için çeşitlendirme tavsiyesi ver.
-      4. TONLAMA: Ciddi, rasyonel ve bilge bir dil kullan. Gereksiz duygusallıktan kaçın.
+      GÖREVİN VE ANALİZ KURALLARIN:
+      1. RİSK ANALİZİ: Kullanıcının harcama/gelir dengesini ve portföy dağılımını (Dolar, Altın vb.) nesnel olarak değerlendir.
+      2. YATIRIM STRATEJİSİ: Eğer net bakiye artıdaysa, bu nakit TL'yi enflasyona karşı korumak için hangi varlığa (USD, EUR veya GOLD) yönlendirmesi gerektiğini teknik bir dille öner.
+      3. ÇEŞİTLENDİRME: Portföy tek bir varlığa yığılmışsa, risk yayımı (diversification) tavsiyesi ver.
+      4. KİŞİLİK: Bilge, rasyonel, kısa konuşan ve strateji odaklı bir kaplumbağa gibi davran.
       
       GENEL KURALLAR:
-      - Maksimum 3-4 cümle konuş.
-      - Emojiler kullan: 📈, ⚖️, 🏛️, 🌕, 🛡️
+      - Maksimum 3-4 cümle ile net konuş.
+      - Emojilerle zenginleştir: 📈, ⚖️, 🏛️, 🛡️, 💹
     `;
 
     const result = await model.generateContent(prompt);
-    return result.response.text();
+    const responseText = result.response.text();
+
+    return (
+      responseText ||
+      "Şu an net bir tavsiye oluşturamadım, piyasaları izlemeye devam et! 🐢"
+    );
   } catch (error: any) {
-    console.error("AI HATASI:", error);
+    console.error("TOSBAA AI HATASI:", error);
+    // Hata durumunda kullanıcıya gösterilecek dostane mesaj
     return "Hesaplar ve piyasa verileri karıştı, Tosbaa şu an analiz yapamıyor! 🐢💹";
   }
 }
