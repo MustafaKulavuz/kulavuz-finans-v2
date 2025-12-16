@@ -6,9 +6,8 @@ import {
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
-import { Asset } from "@/models/Asset"; // Yeni: Varlık modeli
-import { addOrUpdateAsset } from "@/actions/asset";
-import { Subscription } from "@/models/Subscription"; // Yeni: Abonelik modeli
+import { Asset } from "@/models/Asset";
+import { Subscription } from "@/models/Subscription";
 import { checkAchievements } from "@/actions/achievements";
 import AchievementEffect from "@/components/AchievementEffect";
 import RewardAdButton from "@/components/RewardAd";
@@ -19,9 +18,10 @@ import { getServerSession } from "next-auth";
 import AiAdviceButton from "@/components/AiAdviceButton";
 import AykutNotificationButton from "../components/AykutNotificationButton";
 import TosbaaGame from "@/components/TosbaaGame";
-import AddSubscriptionForm from "@/components/AddSubscriptionForm"; // Yeni form
+import AddSubscriptionForm from "@/components/AddSubscriptionForm";
+import AddAssetForm from "@/components/AddAssetForm"; // Yeni Form Dahil Edildi
 import { authOptions } from "@/lib/auth";
-import { getExchangeRates } from "@/lib/exchange"; // Yeni: Kur servisi
+import { getExchangeRates } from "@/lib/exchange";
 import {
   Trash2,
   TrendingDown,
@@ -34,9 +34,9 @@ import {
   Trophy,
   BarChart3,
   ArrowRight,
-  Wallet, // Yeni ikon
-  CalendarClock, // Yeni ikon
-  Coins, // Yeni ikon
+  Wallet,
+  CalendarClock,
+  Coins,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -94,7 +94,7 @@ export default async function Home() {
     .reduce((acc, curr) => acc + curr.amount, 0);
   const balance = totalIncome - totalExpense;
 
-  // Dövizli Varlık Toplamı
+  // Dövizli Varlık Toplamı Hesaplama
   const totalAssetsInTry = userAssets.reduce((acc, asset) => {
     const rate = rates[asset.type as keyof typeof rates] || 1;
     return acc + asset.amount * rate;
@@ -108,11 +108,11 @@ export default async function Home() {
         {/* HEADER */}
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors text-slate-900 dark:text-white">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
+            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl text-slate-900 dark:text-white">
               💲
             </div>
             <div>
-              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight">
+              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                 Kulavuz Finans{" "}
                 <Sparkles className="text-indigo-500" size={24} />
               </h1>
@@ -125,7 +125,7 @@ export default async function Home() {
           </div>
           <div className="flex flex-col-reverse md:flex-row items-stretch md:items-center gap-4">
             <ThemeToggle />
-            <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-slate-900 dark:text-white">
               <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-xl text-indigo-600">
                 <UserCircle size={24} />
               </div>
@@ -144,7 +144,7 @@ export default async function Home() {
                 <LogOut size={20} />
               </Link>
             </div>
-            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] text-center">
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 md:p-6 shadow-sm min-w-[180px] text-center text-slate-900 dark:text-white">
               <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 NET BAKİYE
               </p>
@@ -169,8 +169,9 @@ export default async function Home() {
                   <h3 className="flex items-center gap-2 font-black text-white text-lg">
                     <Coins className="text-yellow-400" /> Cüzdan & Varlıklar
                   </h3>
-                  <div className="text-[10px] font-bold bg-white/10 px-3 py-1 rounded-full text-indigo-200">
-                    CANLI KURLAR
+                  <div className="text-[10px] font-bold bg-white/10 px-3 py-1 rounded-full text-indigo-200 uppercase">
+                    USD: {rates.USD.toFixed(2)} ₺ | EUR: {rates.EUR.toFixed(2)}{" "}
+                    ₺
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -204,6 +205,12 @@ export default async function Home() {
                 </div>
               </div>
             </section>
+
+            {/* VARLIK EKLEME VE ABONELİK FORMLARI */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <AddAssetForm />
+              <AddSubscriptionForm />
+            </div>
 
             {/* ⚠️ GÜNLÜK LİMİT UYARISI */}
             {todayExpenses > 500 && (
@@ -251,16 +258,13 @@ export default async function Home() {
               </div>
             </section>
 
-            {/* 📅 YAKLAŞAN FATURALAR / ABONELİKLER */}
-            <section className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm">
+            {/* 📅 YAKLAŞAN FATURALAR */}
+            <section className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm text-slate-900 dark:text-white">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="flex items-center gap-2 font-black text-slate-800 dark:text-white">
+                <h3 className="flex items-center gap-2 font-black text-slate-800 dark:text-white text-sm md:text-base">
                   <CalendarClock className="text-indigo-500" /> Yaklaşan
                   Ödemeler
                 </h3>
-                <span className="text-[10px] font-black bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full uppercase">
-                  Bu Ay
-                </span>
               </div>
               <div className="space-y-3">
                 {activeSubs.length > 0 ? (
@@ -269,7 +273,7 @@ export default async function Home() {
                       key={sub._id}
                       className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 text-slate-900 dark:text-white">
                         <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center font-black text-indigo-600 text-xs">
                           {sub.billingDay}
                         </div>
@@ -281,11 +285,10 @@ export default async function Home() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-6 opacity-40 italic text-sm">
+                  <div className="text-center py-6 opacity-40 italic text-sm text-slate-500">
                     Hiç aktif abonelik bulunamadı.
                   </div>
                 )}
-                <AddSubscriptionForm />
               </div>
             </section>
 
@@ -335,7 +338,7 @@ export default async function Home() {
                 </div>
                 <button
                   type="submit"
-                  className="md:col-span-4 mt-2 rounded-2xl bg-indigo-500 py-4 font-black text-white hover:scale-[1.02] active:scale-95 transition-transform"
+                  className="md:col-span-4 mt-2 rounded-2xl bg-indigo-500 py-4 font-black text-white transition-transform hover:scale-[1.02] active:scale-95"
                 >
                   KAYDET
                 </button>
@@ -343,7 +346,7 @@ export default async function Home() {
             </section>
 
             {/* LİSTE */}
-            <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+            <section className="overflow-hidden rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white">
               <div className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-6 text-xs font-black uppercase tracking-widest text-slate-400 text-center">
                 Son Hareketler
               </div>
