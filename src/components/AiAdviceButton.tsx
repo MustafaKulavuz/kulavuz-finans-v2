@@ -1,42 +1,56 @@
 "use client";
 import { useState } from "react";
 import { getFinancialAdvice } from "@/actions/ai-advice";
+import { Sparkles, Loader2 } from "lucide-react";
 
-interface Props {
+interface AiAdviceButtonProps {
   income: number;
   expense: number;
+  assets?: any[]; // Yeni eklenen prop
+  rates?: any; // Yeni eklenen prop
 }
 
-export default function AiAdviceButton({ income, expense }: Props) {
-  const [advice, setAdvice] = useState("");
+export default function AiAdviceButton({
+  income,
+  expense,
+  assets = [],
+  rates = {},
+}: AiAdviceButtonProps) {
+  const [advice, setAdvice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleAskAi = async () => {
+  const handleGetAdvice = async () => {
     setLoading(true);
-    setAdvice("");
-    // Artık sadece 2 veri gönderiyoruz
-    const result = await getFinancialAdvice(income, expense);
-    setAdvice(result);
+    // Artık assets ve rates verilerini AI fonksiyonuna gönderiyoruz
+    const response = await getFinancialAdvice(income, expense, assets, rates);
+    setAdvice(response);
     setLoading(false);
   };
 
   return (
-    <div className="mt-6 p-4 bg-violet-50 dark:bg-violet-900/10 rounded-xl border border-violet-100 dark:border-violet-800">
-      <div className="flex items-center justify-between gap-4">
-        <h3 className="font-bold text-violet-700 dark:text-violet-300">
-          ✨ Tosbaa Tavsiyesi
-        </h3>
-        <button
-          onClick={handleAskAi}
-          disabled={loading}
-          className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm rounded-full transition-all disabled:opacity-50"
-        >
-          {loading ? "Düşünüyor..." : "Sor"}
-        </button>
-      </div>
+    <div className="space-y-4">
+      <button
+        onClick={handleGetAdvice}
+        disabled={loading}
+        className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-black p-5 rounded-[2rem] flex items-center justify-center gap-3 shadow-xl transition-all active:scale-95 disabled:opacity-50"
+      >
+        {loading ? (
+          <Loader2 className="animate-spin" size={24} />
+        ) : (
+          <>
+            <Sparkles size={24} /> TOSBAA YATIRIM TAVSİYESİ AL
+          </>
+        )}
+      </button>
+
       {advice && (
-        <div className="mt-3 text-sm text-slate-700 dark:text-slate-300 bg-white/50 dark:bg-black/20 p-3 rounded-lg animate-pulse-once">
-          {advice}
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-indigo-100 dark:border-indigo-900/30 shadow-inner animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium italic">
+            " {advice} "
+          </p>
+          <div className="mt-3 text-[10px] font-black text-indigo-500 uppercase tracking-widest text-right">
+            — Bilge Tosbaa 🐢🏛️
+          </div>
         </div>
       )}
     </div>

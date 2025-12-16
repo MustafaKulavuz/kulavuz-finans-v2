@@ -19,7 +19,7 @@ import AiAdviceButton from "@/components/AiAdviceButton";
 import AykutNotificationButton from "../components/AykutNotificationButton";
 import TosbaaGame from "@/components/TosbaaGame";
 import AddSubscriptionForm from "@/components/AddSubscriptionForm";
-import AddAssetForm from "@/components/AddAssetForm"; // Yeni Form Dahil Edildi
+import AddAssetForm from "@/components/AddAssetForm";
 import { authOptions } from "@/lib/auth";
 import { getExchangeRates } from "@/lib/exchange";
 import {
@@ -108,17 +108,17 @@ export default async function Home() {
         {/* HEADER */}
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 p-6 md:p-0 rounded-[2rem] md:rounded-none shadow-sm md:shadow-none transition-colors text-slate-900 dark:text-white">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl text-slate-900 dark:text-white">
+            <div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-2xl">
               💲
             </div>
             <div>
-              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="flex items-center gap-2 text-2xl md:text-4xl font-black tracking-tight">
                 Kulavuz Finans{" "}
                 <Sparkles className="text-indigo-500" size={24} />
               </h1>
               <p className="font-medium text-slate-500 dark:text-slate-400 text-xs md:text-base italic">
                 {totalAssetsInTry > 0
-                  ? `Toplam Varlığın: ${totalAssetsInTry.toLocaleString()} ₺ 🚀`
+                  ? `Toplam Portföyün: ${totalAssetsInTry.toLocaleString()} ₺ 🏛️`
                   : "Finansal özgürlüğe ilk adım."}
               </p>
             </div>
@@ -206,7 +206,7 @@ export default async function Home() {
               </div>
             </section>
 
-            {/* VARLIK EKLEME VE ABONELİK FORMLARI */}
+            {/* FORM ALANI: VARLIK VE ABONELİK */}
             <div className="grid gap-6 md:grid-cols-2">
               <AddAssetForm />
               <AddSubscriptionForm />
@@ -256,93 +256,6 @@ export default async function Home() {
                 </div>
                 <BannerAd />
               </div>
-            </section>
-
-            {/* 📅 YAKLAŞAN FATURALAR */}
-            <section className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm text-slate-900 dark:text-white">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="flex items-center gap-2 font-black text-slate-800 dark:text-white text-sm md:text-base">
-                  <CalendarClock className="text-indigo-500" /> Yaklaşan
-                  Ödemeler
-                </h3>
-              </div>
-              <div className="space-y-3">
-                {activeSubs.length > 0 ? (
-                  activeSubs.map((sub) => (
-                    <div
-                      key={sub._id}
-                      className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800"
-                    >
-                      <div className="flex items-center gap-4 text-slate-900 dark:text-white">
-                        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center font-black text-indigo-600 text-xs">
-                          {sub.billingDay}
-                        </div>
-                        <p className="font-bold">{sub.name}</p>
-                      </div>
-                      <span className="font-black text-rose-500">
-                        -{sub.amount} ₺
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-6 opacity-40 italic text-sm text-slate-500">
-                    Hiç aktif abonelik bulunamadı.
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* İŞLEM EKLEME FORMU */}
-            <section className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-black p-6 md:p-8 shadow-2xl transition-colors">
-              <h3 className="relative mb-6 flex items-center gap-2 text-lg font-bold text-white">
-                <PlusCircle className="text-indigo-400" size={24} /> Yeni İşlem
-                Ekle
-              </h3>
-              <form
-                action={addTransaction}
-                className="relative grid gap-4 md:grid-cols-4"
-              >
-                <select
-                  name="category"
-                  className="md:col-span-1 appearance-none rounded-2xl border-none bg-slate-800 dark:bg-slate-900 p-4 font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="Maaş">💰 Maaş</option>
-                  <option value="Ek Gelir">💵 Ek Gelir</option>
-                  <option value="Mutfak">🛒 Mutfak</option>
-                  <option value="Fatura">📄 Fatura</option>
-                  <option value="Eğlence">🎉 Eğlence</option>
-                  <option value="Sabit Gider">🏠 Sabit Gider</option>
-                  <option value="Ulaşım">🚗 Ulaşım</option>
-                  <option value="Giyim">👕 Giyim</option>
-                  <option value="Yatırım">📈 Yatırım</option>
-                  <option value="Sağlık">💊 Sağlık</option>
-                  <option value="Diğer">🤷‍♂️ Diğer</option>
-                </select>
-                <input
-                  name="description"
-                  placeholder="Açıklama"
-                  className="md:col-span-2 rounded-2xl border-none bg-slate-800 dark:bg-slate-900 p-4 text-white outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                />
-                <div className="relative md:col-span-1">
-                  <input
-                    name="amount"
-                    type="number"
-                    placeholder="Tutar"
-                    className="w-full rounded-2xl border-none bg-slate-800 dark:bg-slate-900 p-4 text-white outline-none focus:ring-2 focus:ring-indigo-500"
-                    required
-                  />
-                  <span className="absolute right-4 top-4 font-bold text-slate-500">
-                    ₺
-                  </span>
-                </div>
-                <button
-                  type="submit"
-                  className="md:col-span-4 mt-2 rounded-2xl bg-indigo-500 py-4 font-black text-white transition-transform hover:scale-[1.02] active:scale-95"
-                >
-                  KAYDET
-                </button>
-              </form>
             </section>
 
             {/* LİSTE */}
@@ -418,7 +331,13 @@ export default async function Home() {
           </div>
 
           <div className="space-y-6">
-            <AiAdviceButton income={totalIncome} expense={totalExpense} />
+            {/* TOSBAA AI TAVSİYE BUTONU: Veriler artık gidiyor */}
+            <AiAdviceButton
+              income={totalIncome}
+              expense={totalExpense}
+              assets={userAssets}
+              rates={rates}
+            />
             <div className="mt-6">
               <AykutNotificationButton
                 balance={balance}
