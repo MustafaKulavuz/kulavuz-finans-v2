@@ -13,7 +13,8 @@ export async function getFinancialAdvice(
     if (!apiKey) return "API Anahtarı bulunamadı.";
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // gemini-1.5-flash yerine gemini-pro deneyelim
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Varlık verilerini güvenli hale getir
     // src/actions/ai-advice.ts
