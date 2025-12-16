@@ -31,6 +31,7 @@ export default function AddAssetForm() {
             <option value="EUR">💶 EUR (Euro)</option>
             <option value="GOLD">🌕 GOLD (Gram Altın)</option>
           </select>
+          <br />
 
           <input
             name="amount"
