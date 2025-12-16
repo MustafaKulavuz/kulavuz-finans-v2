@@ -19,7 +19,7 @@ export async function getFinancialAdvice(
 
     const genAI = new GoogleGenerativeAI(apiKey);
     // En kararlı ve hızlı model sürümü kullanılıyor
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // Alternatif model ismi
 
     // Varlıkların metne dökülmesi ve güvenli veri kontrolü
     const assetDetail =
