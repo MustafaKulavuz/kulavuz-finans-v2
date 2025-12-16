@@ -7,5 +7,6 @@ const AssetSchema = new mongoose.Schema({
   lastUpdated: { type: Date, default: Date.now },
 });
 
+// Eğer model zaten tanımlanmışsa onu kullan, yoksa yeni tanımla
 export const Asset =
   mongoose.models.Asset || mongoose.model("Asset", AssetSchema);

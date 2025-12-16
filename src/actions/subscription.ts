@@ -14,6 +14,8 @@ export async function addSubscription(formData: FormData) {
   const billingDay = Number(formData.get("billingDay"));
 
   await connectDB();
+
+  // 1. Veritabanına kaydet
   await Subscription.create({
     userEmail: session.user.email,
     name,
@@ -21,5 +23,6 @@ export async function addSubscription(formData: FormData) {
     billingDay,
   });
 
-  revalidatePath("/"); // Değişikliği anında yansıt
+  // 2. Client tarafında bildirimi tetiklemek için path'i yenile
+  revalidatePath("/");
 }

@@ -7,6 +7,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
 import { Asset } from "@/models/Asset"; // Yeni: Varlık modeli
+import { addOrUpdateAsset } from "@/actions/asset";
 import { Subscription } from "@/models/Subscription"; // Yeni: Abonelik modeli
 import { checkAchievements } from "@/actions/achievements";
 import AchievementEffect from "@/components/AchievementEffect";
