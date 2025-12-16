@@ -16,11 +16,18 @@ export async function getFinancialAdvice(
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Varlık verilerini güvenli hale getir
-    const assetInfo =
-      assets && assets.length > 0
-        ? assets.map((a) => `${a.type}: ${a.amount}`).join(", ")
-        : "Yatırım yok";
+    // src/actions/ai-advice.ts
 
+    // assetInfo kısmını bu şekilde güncelle:
+    const assetInfo =
+      Array.isArray(assets) && assets.length > 0
+        ? assets
+            .map((a) => `${a.type || "Varlık"}: ${a.amount || 0}`)
+            .join(", ")
+        : "Yatırım bulunmuyor";
+
+    // console.log ekleyerek hatayı terminalden takip et:
+    console.log("AI'ya giden veriler:", { income, expense, assetInfo });
     const prompt = `
       Sen finans danışmanı Tosbaa'sın. 
       Gelir: ${income} TL, Gider: ${expense} TL. 

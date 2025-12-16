@@ -15,16 +15,20 @@ export default function AiAdviceButton({
   const handleGetAdvice = async () => {
     setLoading(true);
     try {
-      // Değişkenlerin varlığını kontrol ederek gönder
+      // assets ve rates'in dizi/obje olduğundan emin olarak gönder
+      const safeAssets = Array.isArray(assets) ? assets : [];
+      const safeRates = rates && typeof rates === "object" ? rates : {};
+
       const response = await getFinancialAdvice(
         income,
         expense,
-        assets || [],
-        rates || {}
+        safeAssets,
+        safeRates
       );
       setAdvice(response);
     } catch (e) {
-      setAdvice("Bağlantı hatası oluştu. 🐢");
+      console.error("Buton Hatası:", e);
+      setAdvice("Bağlantı kurulamadı, lütfen internetini kontrol et! 🐢");
     }
     setLoading(false);
   };
@@ -34,19 +38,22 @@ export default function AiAdviceButton({
       <button
         onClick={handleGetAdvice}
         disabled={loading}
-        className="w-full bg-indigo-600 text-white p-4 rounded-2xl flex items-center justify-center gap-2 font-bold"
+        className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-5 rounded-[2rem] flex items-center justify-center gap-3 font-black shadow-xl active:scale-95 disabled:opacity-50"
       >
         {loading ? (
           <Loader2 className="animate-spin" />
         ) : (
           <>
-            <Sparkles /> TAVSİYE AL
+            <Sparkles size={24} /> TOSBAA YATIRIM TAVSİYESİ AL
           </>
         )}
       </button>
+
       {advice && (
-        <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl italic">
-          "{advice}"
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] border-2 border-indigo-100 dark:border-indigo-900/30">
+          <p className="text-slate-700 dark:text-slate-200 italic font-medium">
+            "{advice}"
+          </p>
         </div>
       )}
     </div>
